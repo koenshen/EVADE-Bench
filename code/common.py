@@ -86,7 +86,7 @@ def messages_builder_example_one_shot_text(one_shot_question: str, one_shot_answ
 
 def write_train_data_to_table(data_list: list, write_to_table_name):
     ### 和直写odps唯一差异
-    # write_to_table_name = "odps://alimama_intern_dev/tables/alimama_disease_dpo_v1"
+    # write_to_table_name = "odps_table_name"
     writer = common_io.table.TableWriter(write_to_table_name, slice_id=0)
     w_result = []
     for index, row in enumerate(data_list):

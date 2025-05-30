@@ -161,46 +161,46 @@ def run_image_rag():
     odps_main(table=bailian_need_to_fix_table_name)
 
 def read_text_rag_and_compare_accuracy():
-    text_rag_table_name = "odps://alimama_intern_dev/tables/yzh_risk_large_model_data_label_eval_info/pt=allinone_text_rag"
+    text_rag_table_name = "odps_table_name/pt=allinone_text_rag"
     original_table_name = get_human_table_datas_to_list(f"{text_rag_table_name}/model=human")
 
     def concat_deepseekv3_text(original_table_name):
-        omega_output_table_name = "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_text_rag_deepseekv3_result"
+        omega_output_table_name = "odps_table_name/ds=allinone_text_rag_deepseekv3_result"
         write_table_name = f"{text_rag_table_name}/model=deepseek-v3"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_deepseekr1_text(original_table_name):
-        omega_output_table_name = "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_text_rag_deepseekr1_result"
+        omega_output_table_name = "odps_table_name/ds=allinone_text_rag_deepseekr1_result"
         write_table_name = f"{text_rag_table_name}/model=deepseek-r1"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_llama8b_text(original_table_name):
-        omega_output_table_name = "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_text_rag_llama8b_result"
+        omega_output_table_name = "odps_table_name/ds=allinone_text_rag_llama8b_result"
         write_table_name = f"{text_rag_table_name}/model=llama3.1-8b"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_llama70b_text(original_table_name):
-        omega_output_table_name = "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_text_rag_llama70b_result"
+        omega_output_table_name = "odps_table_name/ds=allinone_text_rag_llama70b_result"
         write_table_name = f"{text_rag_table_name}/model=llama3.1-70b"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_qwen7b_text(original_table_name):
-        omega_output_table_name = "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_text_rag_qwen25_7b_result"
+        omega_output_table_name = "odps_table_name/ds=allinone_text_rag_qwen25_7b_result"
         write_table_name = f"{text_rag_table_name}/model=qwen2.5-7b"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_qwen14b_text(original_table_name):
-        omega_output_table_name = "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_text_rag_qwen25_14b_result"
+        omega_output_table_name = "odps_table_name/ds=allinone_text_rag_qwen25_14b_result"
         write_table_name = f"{text_rag_table_name}/model=qwen2.5-14b"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_qwen32b_text(original_table_name):
-        omega_output_table_name = "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_text_rag_qwen25_32b_result"
+        omega_output_table_name = "odps_table_name/ds=allinone_text_rag_qwen25_32b_result"
         write_table_name = f"{text_rag_table_name}/model=qwen2.5-32b"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_qwen72b_text(original_table_name):
-        omega_output_table_name = "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_text_rag_qwen25_72b_result"
+        omega_output_table_name = "odps_table_name/ds=allinone_text_rag_qwen25_72b_result"
         write_table_name = f"{text_rag_table_name}/model=qwen2.5-72b"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
@@ -210,32 +210,32 @@ def read_text_rag_and_compare_accuracy():
         read_bailian_jsonl_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, data_file_path=data_file_path)
 
     def concat_omega_qwen3_32b_text(original_table_name):
-        omega_output_table_name =  "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_text_rag_qwen3_32b_think_false_result"
+        omega_output_table_name =  "odps_table_name/ds=allinone_text_rag_qwen3_32b_think_false_result"
         write_table_name = f"{text_rag_table_name}/model=Qwen3-32B_enable_thinking_False"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_omega_qwen3_30b_text(original_table_name):
-        omega_output_table_name =  "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_text_rag_qwen3_30b_moe_think_false_result"
+        omega_output_table_name =  "odps_table_name/ds=allinone_text_rag_qwen3_30b_moe_think_false_result"
         write_table_name = f"{text_rag_table_name}/model=Qwen3-30B-A3B_enable_thinking_False"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_omega_qwen3_235b_text(original_table_name):
-        omega_output_table_name = "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_text_rag_qwen3_235b_moe_think_false_result"
+        omega_output_table_name = "odps_table_name/ds=allinone_text_rag_qwen3_235b_moe_think_false_result"
         write_table_name = f"{text_rag_table_name}/model=Qwen3-235B-A22B_enable_thinking_False"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_omega_qwen3_32b_think_text(original_table_name):
-        omega_output_table_name =  "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_text_rag_qwen3_32b_think_true_result"
+        omega_output_table_name =  "odps_table_name/ds=allinone_text_rag_qwen3_32b_think_true_result"
         write_table_name = f"{text_rag_table_name}/model=Qwen3-32B_enable_thinking_True"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_omega_qwen3_30b_think_text(original_table_name):
-        omega_output_table_name =  "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_text_rag_qwen3_30b_moe_think_true_result"
+        omega_output_table_name =  "odps_table_name/ds=allinone_text_rag_qwen3_30b_moe_think_true_result"
         write_table_name = f"{text_rag_table_name}/model=Qwen3-30B-A3B_enable_thinking_True"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_omega_qwen3_235b_think_text(original_table_name):
-        omega_output_table_name =  "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_text_rag_qwen3_235b_moe_think_true_result"
+        omega_output_table_name =  "odps_table_name/ds=allinone_text_rag_qwen3_235b_moe_think_true_result"
         write_table_name = f"{text_rag_table_name}/model=Qwen3-235B-A22B_enable_thinking_True"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
@@ -257,31 +257,31 @@ def read_text_rag_and_compare_accuracy():
 
 def read_image_rag_and_compare_accuracy():
     
-    image_rag_table_name = "odps://alimama_intern_dev/tables/yzh_risk_large_model_data_label_eval_info/pt=allinone_image_rag_v2"
+    image_rag_table_name = "odps_table_name/pt=allinone_image_rag_v2"
     original_table_name = get_human_table_datas_to_list(f"{image_rag_table_name}/model=human")
 
     def concat_minicpmv_image(original_table_name):
-        omega_output_table_name = "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_image_rag_minicpmv8b_result"
+        omega_output_table_name = "odps_table_name/ds=allinone_image_rag_minicpmv8b_result"
         write_table_name = f"{image_rag_table_name}/model=minicpmv"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_internvl8b_image(original_table_name):
-        omega_output_table_name = "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_image_rag_internvl8b_result"
+        omega_output_table_name = "odps_table_name/ds=allinone_image_rag_internvl8b_result"
         write_table_name = f"{image_rag_table_name}/model=internvl8b"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_internvl14b_image(original_table_name):
-        omega_output_table_name = "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_image_rag_internvl14b_result"
+        omega_output_table_name = "odps_table_name/ds=allinone_image_rag_internvl14b_result"
         write_table_name = f"{image_rag_table_name}/model=internvl14b"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_internvl38b_image(original_table_name):
-        omega_output_table_name = "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_image_rag_internvl38b_result"
+        omega_output_table_name = "odps_table_name/ds=allinone_image_rag_internvl38b_result"
         write_table_name = f"{image_rag_table_name}/model=internvl38b"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 
     def concat_qwenvl72b_image(original_table_name):
-        omega_output_table_name = "odps://alimama_intern_dev/tables/acx_alimm_benchmark_run_on_small_model/ds=allinone_image_rag_qwen25vl72b_result"
+        omega_output_table_name = "odps_table_name/ds=allinone_image_rag_qwen25vl72b_result"
         write_table_name = f"{image_rag_table_name}/model=qwenvl72b"
         read_omega_and_concat_final_data(original_table_name=original_table_name, write_table_name=write_table_name, omega_output_table_name=omega_output_table_name)
 

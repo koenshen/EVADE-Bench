@@ -3,7 +3,7 @@ import random
 from common import *
 from dashscope_generation import odps_main
 
-whole_pt_name = "odps://alimama_intern_dev/tables/yzh_risk_large_model_data_label_eval_info/pt=whole_text_single_risk_250509_v7"
+whole_pt_name = "odps_table_name"
 
 def concat_human_text(whole_text_table_name:str):
     fengxiong_table = "table_name"

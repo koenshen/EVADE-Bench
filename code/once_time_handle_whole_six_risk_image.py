@@ -1,7 +1,7 @@
 from common import *
 from dashscope_image_generation import odps_image_main
 
-whole_pt_name = "odps://alimama_intern_dev/tables/yzh_risk_large_model_data_label_eval_info/pt=whole_image_single_risk_250509_v1"
+whole_pt_name = "odps_table_name"
 
 def concat_human_image(whole_image_table_name:str):
     fengxiong_table =  "table_name"

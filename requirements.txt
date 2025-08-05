@@ -1,0 +1,12 @@
+openai
+datasets
+pandas
+numpy
+matplotlib
+PIL
+torch
+torchvision
+scikit-learn
+requests
+PyMuPDF
+reportlab

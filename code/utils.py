@@ -543,7 +543,7 @@ def get_inference_result_and_check_accuracy(data_list:list):
     for index, item in enumerate(data_list):
         try:
             ground_truth_list = eval(item['ground_truth'])
-            if "```json" in item['generate_results']:
+            if validate_and_extract_three_json(item['generate_results']):
                 predict_json = validate_and_extract_three_json(item['generate_results'])
                 predict_list_str = json.loads(predict_json)['结论']
                 predict_list_str = uniform_format_of_options(predict_list_str)

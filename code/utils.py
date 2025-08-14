@@ -548,7 +548,7 @@ def get_inference_result_and_check_accuracy(data_list:list):
                 predict_list_str = json.loads(predict_json)['结论']
                 predict_list_str = uniform_format_of_options(predict_list_str)
                 predict_list = json.loads(predict_list_str)
-            elif "\\box{" in item['generate_results']:
+            elif "\\box" in item['generate_results']:
                 box_content = validate_and_extract_box_content(item['generate_results'])
                 box_content_str = uniform_format_of_options(box_content)
                 predict_list = json.loads(box_content_str)

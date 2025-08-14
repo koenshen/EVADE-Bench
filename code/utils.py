@@ -548,13 +548,18 @@ def get_inference_result_and_check_accuracy(data_list:list):
                 predict_list_str = json.loads(predict_json)['结论']
                 predict_list_str = uniform_format_of_options(predict_list_str)
                 predict_list = json.loads(predict_list_str)
-            elif "\\box" in item['generate_results']:
+            elif "\\box{" in item['generate_results']:
                 box_content = validate_and_extract_box_content(item['generate_results'])
                 box_content_str = uniform_format_of_options(box_content)
                 predict_list = json.loads(box_content_str)
             elif item['generate_results'].startswith('[') and item['generate_results'].endswith(']'):
                 predict_list_str = uniform_format_of_options(item['generate_results'])
                 predict_list = json.loads(predict_list_str)
+            elif "ox{" in item['generate_results']:
+                item['generate_results'] = item['generate_results'].replace("ox{", "\\box{")
+                box_content = validate_and_extract_box_content(item['generate_results'])
+                box_content_str = uniform_format_of_options(box_content)
+                predict_list = json.loads(box_content_str)
             else:
                 print(f"current item['generate_results'] not a correct format = {json.dumps(item['generate_results'], ensure_ascii=False)}")
                 continue

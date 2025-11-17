@@ -1,6 +1,6 @@
 from utils import *
 
-repeate_time = 100
+repeate_time = 50
 NUM_THREADS = 50
 
 model_name_use = "gpt-4o-0806"
@@ -26,7 +26,10 @@ def process_rows(thread_id, rows, save_path_template):
             try:
                 prompt = row['single_risk_question']
                 data_uri = concat_base64_image_url(row['content_image'])
-                result, reasoning_content = call_idealab_api(prompt=prompt, image_url=data_uri, model_name=model_name_use)
+                result, reasoning_content = call_idealab_api_without_stream(prompt=prompt, image_url=data_uri, model_name=model_name_use)
+
+                if is_limit_api(result):
+                    continue
 
                 if not validate_and_extract_three_json(result):
                     continue
@@ -34,7 +37,7 @@ def process_rows(thread_id, rows, save_path_template):
                 result_dict['prompt'] = prompt
                 result_dict['model_name'] = model_name_use
                 result_dict['generate_results'] = result
-                print(f"Thread {thread_id}: NO.{row_num} of generation")
+                print(f"Thread {thread_id}: NO.{row_num}/{len(rows)} of generation")
                 print("-" * 100)
                 break
             except Exception as e:
@@ -75,7 +78,7 @@ if __name__ == "__main__":
 
     # 创建保存路径
     timestamp = time.strftime('%y%m%d%H%M%S')
-    save_path_template = f"../datas/image_test-{timestamp}.json"
+    save_path_template = f"../data/image_test-{timestamp}.json"
     final_save_path = save_path_template
 
     # 将数据平均分配给各个线程

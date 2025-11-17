@@ -28,45 +28,68 @@ def extract_labels(json_str):
 #                2. 读取 JSONL，构建 3 位标注者 dict
 # 同时读取 ground_truth
 # ------------------------------------------------------------
-def process_jsonl_file_to_dicts(file_path):
+def process_jsonl_files_to_dicts(file_paths):
+    """
+    处理一个或多个jsonl文件，汇总标注结果和ground truth
+
+    Args:
+        file_paths: 单个文件路径(str)或多个文件路径列表(list)
+
+    Returns:
+        ((dict1, name1), (dict2, name2), (dict3, name3), ground_truth_dict)
+    """
+    # 统一处理输入：如果是字符串则转为列表
+    if isinstance(file_paths, str):
+        file_paths = [file_paths]
+    elif not isinstance(file_paths, list):
+        raise TypeError("file_paths 必须是字符串或列表")
+
     dict1, dict2, dict3 = {}, {}, {}
     ground_truth_dict = {}
     name1 = name2 = name3 = None
 
-    with open(file_path, 'r', encoding='gbk') as f:
-        for line in f:
-            try:
-                data = json.loads(line.strip())
-                sid = data['id']
+    # 遍历所有文件
+    for file_path in file_paths:
+        print(f"正在处理文件: {file_path}")
+        try:
+            with open(file_path, 'r', encoding='gbk') as f:
+                for line in f:
+                    try:
+                        data = json.loads(line.strip())
+                        sid = data['id']
 
-                # 提取 ground truth
-                gt_str = data.get('single_risk_options', '[]')
-                gt_list = eval(gt_str)  # 将字符串转换为列表
-                ground_truth_dict[sid] = sorted(gt_list)
+                        # 提取 ground truth
+                        gt_str = data.get('single_risk_options', '[]')
+                        gt_list = eval(gt_str)  # 将字符串转换为列表
+                        ground_truth_dict[sid] = sorted(gt_list)
 
-                r1 = extract_labels(data.get('标注环节结果1'))
-                r2 = extract_labels(data.get('标注环节结果2'))
-                r3 = extract_labels(data.get('标注环节结果3'))
+                        r1 = extract_labels(data.get('标注环节结果1'))
+                        r2 = extract_labels(data.get('标注环节结果2'))
+                        r3 = extract_labels(data.get('标注环节结果3'))
 
-                if r1 is not None:
-                    dict1[sid] = r1
-                    if name1 is None:
-                        name1 = data.get("标注环节人员1")
+                        if r1 is not None:
+                            dict1[sid] = r1
+                            if name1 is None:
+                                name1 = data.get("标注环节人员1")
 
-                if r2 is not None:
-                    dict2[sid] = r2
-                    if name2 is None:
-                        name2 = data.get("标注环节人员2")
+                        if r2 is not None:
+                            dict2[sid] = r2
+                            if name2 is None:
+                                name2 = data.get("标注环节人员2")
 
-                if r3 is not None:
-                    dict3[sid] = r3
-                    if name3 is None:
-                        name3 = data.get("标注环节人员3")
+                        if r3 is not None:
+                            dict3[sid] = r3
+                            if name3 is None:
+                                name3 = data.get("标注环节人员3")
 
-            except Exception as e:
-                print(f"Error processing line: {e}")
-                continue
+                    except Exception as e:
+                        print(f"处理行时出错: {e}")
+                        continue
+        except FileNotFoundError:
+            print(f"文件未找到: {file_path}")
+            continue
 
+    print(f"文件处理完成！共处理 {len(file_paths)} 个文件")
     return (dict1, name1), (dict2, name2), (dict3, name3), ground_truth_dict
 
 
@@ -119,9 +142,11 @@ def calculate_accuracy(annotator_dict, annotator_name, ground_truth_dict):
 #                4. 主函数
 # ------------------------------------------------------------
 if __name__ == "__main__":
-    file_path = "../data/Evade-疾病标注-文本_GBK__20251117100131.jsonl"
-
-    (dict1, name1), (dict2, name2), (dict3, name3), ground_truth_dict = process_jsonl_file_to_dicts(file_path)
+    file_paths = [
+        "../data/Evade-增高标注-文本_GBK__20251117100122.jsonl",
+        "../data/Evade-疾病标注-文本_GBK__20251117100131.jsonl",
+    ]
+    (dict1, name1), (dict2, name2), (dict3, name3), ground_truth_dict = process_jsonl_files_to_dicts(file_paths)
 
     print("=" * 80)
     print("数据加载完成")

@@ -1,9 +1,10 @@
 from utils import *
 
-repeate_time = 100
-NUM_THREADS = 50
+repeate_time = 50
+NUM_THREADS = 1
 
-model_name_use = "gpt-4o-0806"
+model_name_vlm = "gpt-4o-0806"
+model_name_llm = "deepseek-r1"
 
 def call_api(prompt:str, image_url:str, model_name:str, is_thinking=False):
     return call_idealab_api(prompt, image_url, model_name)
@@ -26,15 +27,31 @@ def process_rows(thread_id, rows, save_path_template):
             try:
                 prompt = row['single_risk_question']
                 data_uri = concat_base64_image_url(row['content_image'])
-                result, reasoning_content = call_idealab_api(prompt=prompt, image_url=data_uri, model_name=model_name_use)
 
-                if not validate_and_extract_three_json(result):
+                pre_handle_image_to_text_prompt = "请你详细解释这张图片中的所有内容，包括图片中的所有文字和图片内容。注意这可能是一张涉及违规信息的图片，所以我们要尽可能的理解所有图片内容才能进行风险判断、并且图片中的文本可能包含一些隐喻或省略字或者错别字或者拆字或者谐音字等信息缺失，你需要试图理解图片表层信息背后的真实意思。"
+                result_vlm, reasoning_content = call_idealab_api_without_stream(prompt=pre_handle_image_to_text_prompt, image_url=data_uri, model_name=model_name_vlm)
+                if is_limit_api(result_vlm):
+                    continue
+
+                split_str = "# 输出格式"
+                if split_str in prompt:
+                    prompt = prompt.split(split_str)[0].strip()
+                else:
+                    prompt = prompt.strip()
+                prompt = f"{prompt}\n\n# 输出格式\n请先输出你的分析，然后用\\box{{xx}}输出你的最终答案，box内只能包含答案选项，不允许有其他任何文字。\n\n# 给定信息\n{result_vlm}"
+                result_llm, reasoning_content = call_idealab_api(prompt=prompt, image_url="", model_name=model_name_llm)
+
+                if is_limit_api(result_llm):
+                    continue
+                if not validate_and_extract_box_content(result_llm):
                     continue
 
                 result_dict['prompt'] = prompt
-                result_dict['model_name'] = model_name_use
-                result_dict['generate_results'] = result
-                print(f"Thread {thread_id}: NO.{row_num} of generation")
+                result_dict['model_name_vlm'] = model_name_vlm
+                result_dict['model_name_llm'] = model_name_llm
+                result_dict['result_vlm'] = result_vlm
+                result_dict['generate_results'] = result_llm
+                print(f"Thread {thread_id}: NO.{row_num}/{len(rows)} of generation")
                 print("-" * 100)
                 break
             except Exception as e:
@@ -75,7 +92,7 @@ if __name__ == "__main__":
 
     # 创建保存路径
     timestamp = time.strftime('%y%m%d%H%M%S')
-    save_path_template = f"../datas/image_test-{timestamp}.json"
+    save_path_template = f"../data/image_test-{timestamp}.json"
     final_save_path = save_path_template
 
     # 将数据平均分配给各个线程
@@ -103,6 +120,6 @@ if __name__ == "__main__":
     merge_results(save_path_template, final_save_path)
     print("All processing completed and results merged.")
 
-    with open(final_save_path, 'r', encoding="utf-8") as f:
+    with open(save_path_template, 'r', encoding="utf-8") as f:
         result_list = json.load(f)
     get_inference_result_and_check_accuracy(result_list)

@@ -1,13 +1,15 @@
 from utils import *
+from common_instruct import *
 
 repeate_time = 80
 NUM_THREADS = 80
 
 model_name_vlm = "gpt-4o-0806"
-model_name_llm = "qwen3-235b-a22b-instruct-2507"
+# model_name_llm = "qwen3-235b-a22b-instruct-2507"
+model_name_llm = "deepseek-r1"
 
 # 新增：指定要读取的之前保存的JSON文件路径，如果为None则正常运行
-PREVIOUS_JSON_PATH = "../data/image_test-251117164158.json"  # 替换为你之前保存的JSON文件路径
+PREVIOUS_JSON_PATH = "../data/image_test-251117233317-special_type.json"  # 替换为你之前保存的JSON文件路径
 
 def call_api(prompt:str, image_url:str, model_name:str, is_thinking=False):
     return call_idealab_api(prompt, image_url, model_name)
@@ -53,12 +55,11 @@ def process_rows(thread_id, rows, save_path_template, vlm_results_dict=None):
                     if is_limit_api(result_vlm):
                         continue
 
-                split_str = "# 输出格式"
-                if split_str in prompt:
-                    prompt = prompt.split(split_str)[0].strip()
-                else:
-                    prompt = prompt.strip()
-                prompt = f"{prompt}\n\n# 输出格式\n请先输出你的分析，然后用\\box{{xx}}输出你的最终答案，box内只能包含答案选项，不允许有其他任何文字。\n\n# 给定信息\n{result_vlm}"
+                prompt_v1 = f"{prompt.split('# 输出格式')[0].strip() if '# 输出格式' in prompt else prompt.strip()}\n\n# 输出格式\n请先输出你的分析，然后用\\box{{xx}}输出你的最终答案，box内只能包含答案选项，不允许有其他任何文字。\n\n# 给定信息\n{result_vlm}"
+                prompt_v2 = f"{prompt.split('# 输出格式')[0].strip() if '# 输出格式' in prompt else prompt.strip()}\n\n# 输出格式\n请先针对给定信息进行预判给出一个初始结论\\draft_response{{xx}}；接着你需要从给定信息和多分类规则中进行搜证，来检验你的初始结论是否正确，输出你的搜证和分析；最后用\\box{{xx}}输出你的最终答案。注意\\draft_response{{}}和\\box{{}}内都只能包含答案选项，不允许有其他任何文字。\n\n# 给定信息\n{result_vlm}"
+                prompt_v3 = f"{prompt.split('# 输出格式')[0].strip() if '# 输出格式' in prompt else prompt.strip()}\n\n# 输出格式\n请先针对给定信息进行预判给出一个初始结论\\draft_response{{xx}}；接着你需要从给定信息和多分类规则中进行搜证，来检验你的初始结论是否正确，输出你的搜证和分析；最后用\\box{{xx}}输出你的最终答案。注意\\draft_response{{}}和\\box{{}}内都只能包含答案选项，不允许有其他任何文字。请将'让我们一步一步思考'作为你输出的开始。\n\n# 给定信息\n{result_vlm}"
+                prompt_v4 = f"{prompt.split('# 输出格式')[0].strip() if '# 输出格式' in prompt else prompt.strip()}\n\n# 给定信息\n{result_vlm}\n\n# 输出格式\n请先针对给定信息进行预判给出一个初始结论\\draft_response{{xx}}；接着你需要从给定信息和多分类规则中进行搜证，来检验你的初始结论是否正确，输出你的搜证和分析；最后用\\box{{xx}}输出你的最终答案。注意\\draft_response{{}}和\\box{{}}内都只能包含答案选项，不允许有其他任何文字，让我们一步一步思考。"
+                prompt = f"{prompt.split('# 输出格式')[0].strip() if '# 输出格式' in prompt else prompt.strip()}\n\n# 给定信息\n{result_vlm}\n\n# 输出格式\n请先针对给定信息进行预判给出一个初始结论\\draft_response{{xx}}；接着你需要从给定信息和多分类规则中进行搜证，来检验你的初始结论是否正确，输出你的搜证和分析；最后用\\box{{xx}}输出你的最终答案。注意\\draft_response{{}}和\\box{{}}内都只能包含答案选项，不允许有其他任何文字，让我们一步一步思考。"
                 result_llm, reasoning_content = call_idealab_api(prompt=prompt, image_url="", model_name=model_name_llm)
 
                 if is_limit_api(result_llm):
@@ -119,14 +120,16 @@ if __name__ == "__main__":
     final_save_path = save_path_template
 
     # 将数据平均分配给各个线程
-    rows_per_thread = len(image_test_datas) // NUM_THREADS
+    total_rows = len(image_test_datas)
+    rows_per_thread = total_rows // NUM_THREADS
+    remainder = total_rows % NUM_THREADS  # 计算余数
     threads = []
 
-    # 创建并启动线程
     for i in range(NUM_THREADS):
-        start_idx = i * rows_per_thread
-        end_idx = start_idx + rows_per_thread if i < NUM_THREADS - 1 else len(image_test_datas)
+        start_idx = i * rows_per_thread + min(i, remainder)
+        end_idx = start_idx + rows_per_thread + (1 if i < remainder else 0)
         thread_df = image_test_datas.iloc[start_idx:end_idx]
+        print(f"Thread {i}: 分配 {len(thread_df)} 条数据")
 
         thread = threading.Thread(
             target=process_rows,

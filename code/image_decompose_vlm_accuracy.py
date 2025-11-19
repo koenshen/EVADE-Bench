@@ -1,10 +1,11 @@
 from utils import *
+from common_instruct import *
 
 repeate_time = 50
-NUM_THREADS = 1
+NUM_THREADS = 50
 
 model_name_vlm = "gpt-4o-0806"
-model_name_llm = "deepseek-r1"
+model_name_llm = "qwen2.5-72b-instruct"
 
 def call_api(prompt:str, image_url:str, model_name:str, is_thinking=False):
     return call_idealab_api(prompt, image_url, model_name)
@@ -21,14 +22,15 @@ def process_rows(thread_id, rows, save_path_template):
         result_dict = {}
         result_dict['id'] = row['id']
         result_dict['ground_truth'] = row['single_risk_options']
-
+        result_dict['content_type'] = row['content_type']
         # generation 推理
         for _ in range(repeate_time):
             try:
                 prompt = row['single_risk_question']
                 data_uri = concat_base64_image_url(row['content_image'])
 
-                pre_handle_image_to_text_prompt = "请你详细解释这张图片中的所有内容，包括图片中的所有文字和图片内容。注意这可能是一张涉及违规信息的图片，所以我们要尽可能的理解所有图片内容才能进行风险判断、并且图片中的文本可能包含一些隐喻或省略字或者错别字或者拆字或者谐音字等信息缺失，你需要试图理解图片表层信息背后的真实意思。"
+                # pre_handle_image_to_text_prompt_v1 = "请你详细解释这张图片中的所有内容，包括图片中的所有文字和图片内容。注意这可能是一张涉及违规信息的图片，所以我们要尽可能的理解所有图片内容才能进行风险判断、并且图片中的文本可能包含一些隐喻或省略字或者错别字或者拆字或者谐音字等信息缺失，你需要试图理解图片表层信息背后的真实意思。"
+                pre_handle_image_to_text_prompt = super_vlm_instruct_of_decompose_dict[row['content_type']]
                 result_vlm, reasoning_content = call_idealab_api_without_stream(prompt=pre_handle_image_to_text_prompt, image_url=data_uri, model_name=model_name_vlm)
                 if is_limit_api(result_vlm):
                     continue
@@ -46,7 +48,8 @@ def process_rows(thread_id, rows, save_path_template):
                 if not validate_and_extract_box_content(result_llm):
                     continue
 
-                result_dict['prompt'] = prompt
+                result_dict['vlm_prompt'] = pre_handle_image_to_text_prompt
+                result_dict['llm_prompt'] = prompt
                 result_dict['model_name_vlm'] = model_name_vlm
                 result_dict['model_name_llm'] = model_name_llm
                 result_dict['result_vlm'] = result_vlm
@@ -96,14 +99,16 @@ if __name__ == "__main__":
     final_save_path = save_path_template
 
     # 将数据平均分配给各个线程
-    rows_per_thread = len(image_test_datas) // NUM_THREADS
+    total_rows = len(image_test_datas)
+    rows_per_thread = total_rows // NUM_THREADS
+    remainder = total_rows % NUM_THREADS  # 计算余数
     threads = []
 
-    # 创建并启动线程
     for i in range(NUM_THREADS):
-        start_idx = i * rows_per_thread
-        end_idx = start_idx + rows_per_thread if i < NUM_THREADS - 1 else len(image_test_datas)
+        start_idx = i * rows_per_thread + min(i, remainder)
+        end_idx = start_idx + rows_per_thread + (1 if i < remainder else 0)
         thread_df = image_test_datas.iloc[start_idx:end_idx]
+        print(f"Thread {i}: 分配 {len(thread_df)} 条数据")
 
         thread = threading.Thread(
             target=process_rows,

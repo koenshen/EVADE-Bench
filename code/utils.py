@@ -704,3 +704,26 @@ def compute_accuracy_by_filename(file_name:str, content_type_list:list):
     else:
         datas = result_list
     get_inference_result_and_check_accuracy(datas)
+
+def extract_complex_rules_from_prompt(prompt:str):
+    """
+    截取"# 管控类型"和"# 输出格式"中间的所有字符串内容
+    参数:
+        text: 输入的字符串
+    返回:
+        截取的内容，如果找不到标记则返回自身
+    """
+    start_marker = "# 管控类型"
+    end_marker = "# 输出格式"
+
+    start_index = prompt.find(start_marker)
+    end_index = prompt.find(end_marker)
+
+    # 如果两个标记都存在且顺序正确
+    if start_index != -1 and end_index != -1 and start_index < end_index:
+        # 从start_marker之后开始截取，到end_marker之前结束
+        start_pos = start_index + len(start_marker)
+        content = prompt[start_pos:end_index]
+        return content.strip()  # 去除首尾空白字符
+
+    return prompt

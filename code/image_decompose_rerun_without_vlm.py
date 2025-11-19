@@ -4,7 +4,6 @@ from common_instruct import *
 repeate_time = 80
 NUM_THREADS = 80
 
-model_name_vlm = "gpt-4o-0806"
 # model_name_llm = "qwen3-235b-a22b-instruct-2507"
 model_name_llm = "deepseek-r1"
 
@@ -20,7 +19,7 @@ def load_previous_vlm_results(json_path):
         with open(json_path, 'r', encoding='utf-8') as f:
             previous_results = json.load(f)
         # 创建id到result_vlm的映射
-        vlm_dict = {item['id']: item.get('result_vlm', '') for item in previous_results}
+        vlm_dict = {item['id']: item for item in previous_results}
         print(f"成功加载之前的VLM结果，共 {len(vlm_dict)} 条记录")
         return vlm_dict
     return None
@@ -37,6 +36,7 @@ def process_rows(thread_id, rows, save_path_template, vlm_results_dict=None):
         result_dict = {}
         result_dict['id'] = row['id']
         result_dict['ground_truth'] = row['single_risk_options']
+        result_dict['content_type'] = row['content_type']
 
         # generation 推理
         for _ in range(repeate_time):
@@ -46,7 +46,9 @@ def process_rows(thread_id, rows, save_path_template, vlm_results_dict=None):
 
                 # 检查是否可以复用之前的VLM结果
                 if vlm_results_dict and row['id'] in vlm_results_dict:
-                    result_vlm = vlm_results_dict[row['id']]
+                    old_item = vlm_results_dict[row['id']]
+                    result_vlm = old_item['result_vlm']
+                    model_name_vlm = old_item['model_name_vlm']
                     print(f"Thread {thread_id}: 复用VLM结果 for ID {row['id']}")
                 else:
                     # 如果没有之前的结果，则调用VLM
@@ -67,7 +69,8 @@ def process_rows(thread_id, rows, save_path_template, vlm_results_dict=None):
                 if not validate_and_extract_box_content(result_llm):
                     continue
 
-                result_dict['prompt'] = prompt
+                result_dict['vlm_prompt'] = ""
+                result_dict['llm_prompt'] = prompt
                 result_dict['model_name_vlm'] = model_name_vlm
                 result_dict['model_name_llm'] = model_name_llm
                 result_dict['result_vlm'] = result_vlm

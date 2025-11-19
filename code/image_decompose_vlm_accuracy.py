@@ -5,6 +5,7 @@ repeate_time = 50
 NUM_THREADS = 50
 
 model_name_vlm = "gpt-4o-0806"
+# model_name_vlm = "qwen2.5-vl-72b-instruct"
 model_name_llm = "qwen2.5-72b-instruct"
 
 def call_api(prompt:str, image_url:str, model_name:str, is_thinking=False):
@@ -40,7 +41,7 @@ def process_rows(thread_id, rows, save_path_template):
                     prompt = prompt.split(split_str)[0].strip()
                 else:
                     prompt = prompt.strip()
-                prompt = f"{prompt}\n\n# 输出格式\n请先输出你的分析，然后用\\box{{xx}}输出你的最终答案，box内只能包含答案选项，不允许有其他任何文字。\n\n# 给定信息\n{result_vlm}"
+                prompt = f"{prompt.split('# 输出格式')[0].strip() if '# 输出格式' in prompt else prompt.strip()}\n\n# 给定信息\n{result_vlm}\n\n# 输出格式\n请先针对给定信息进行预判给出一个初始结论\\draft_response{{xx}}；接着你需要从给定信息和多分类规则中进行搜证，来检验你的初始结论是否正确，输出你的搜证和分析；最后用\\box{{xx}}输出你的最终答案。注意\\draft_response{{}}和\\box{{}}内都只能包含答案选项，不允许有其他任何文字，让我们一步一步思考。"
                 result_llm, reasoning_content = call_idealab_api(prompt=prompt, image_url="", model_name=model_name_llm)
 
                 if is_limit_api(result_llm):

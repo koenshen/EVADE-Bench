@@ -14,7 +14,9 @@ def extract_labels(json_str):
 
         labels = []
         for item in mark_result:
-            m = re.match(r'^\s*-\s*([A-Z])\.', item.strip())
+            # m = re.match(r'^\s*-\s*([A-Z])\.', item.strip()) # 只能计算字母前有-的
+            m = re.match(r'^\s*-?\s*([A-Z])\.', item.strip()) # 更通用
+
             if m:
                 labels.append(m.group(1))
 
@@ -144,7 +146,7 @@ def calculate_accuracy(annotator_dict, annotator_name, ground_truth_dict):
 if __name__ == "__main__":
     file_paths = [
         "../data/Evade-增高标注-文本_GBK__20251117100122.jsonl",
-        "../data/Evade-疾病标注-文本_GBK__20251117100131.jsonl",
+        # "../data/Evade-疾病标注-文本_GBK__20251117100131.jsonl",
     ]
     (dict1, name1), (dict2, name2), (dict3, name3), ground_truth_dict = process_jsonl_files_to_dicts(file_paths)
 

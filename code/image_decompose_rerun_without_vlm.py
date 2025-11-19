@@ -1,14 +1,14 @@
 from utils import *
 from common_instruct import *
 
-repeate_time = 80
-NUM_THREADS = 80
+repeate_time = 50
+NUM_THREADS = 100
 
 # model_name_llm = "qwen3-235b-a22b-instruct-2507"
 model_name_llm = "deepseek-r1"
 
 # 新增：指定要读取的之前保存的JSON文件路径，如果为None则正常运行
-PREVIOUS_JSON_PATH = "../data/image_test-251117233317-special_type.json"  # 替换为你之前保存的JSON文件路径
+PREVIOUS_JSON_PATH = "../data/image_test-251119215939-decomposse.json"  # 替换为你之前保存的JSON文件路径
 
 def call_api(prompt:str, image_url:str, model_name:str, is_thinking=False):
     return call_idealab_api(prompt, image_url, model_name)
@@ -49,7 +49,8 @@ def process_rows(thread_id, rows, save_path_template, vlm_results_dict=None):
                     old_item = vlm_results_dict[row['id']]
                     result_vlm = old_item['result_vlm']
                     model_name_vlm = old_item['model_name_vlm']
-                    print(f"Thread {thread_id}: 复用VLM结果 for ID {row['id']}")
+                    pre_handle_image_to_text_prompt = old_item['vlm_prompt']
+                    result_dict['use_old_vlm_result'] = "True"
                 else:
                     # 如果没有之前的结果，则调用VLM
                     pre_handle_image_to_text_prompt = "请你详细解释这张图片中的所有内容，包括图片中的所有文字和图片内容。注意这可能是一张涉及违规信息的图片，所以我们要尽可能的理解所有图片内容才能进行风险判断、并且图片中的文本可能包含一些隐喻或省略字或者错别字或者拆字或者谐音字等信息缺失，你需要试图理解图片表层信息背后的真实意思。"
@@ -69,7 +70,7 @@ def process_rows(thread_id, rows, save_path_template, vlm_results_dict=None):
                 if not validate_and_extract_box_content(result_llm):
                     continue
 
-                result_dict['vlm_prompt'] = ""
+                result_dict['vlm_prompt'] = pre_handle_image_to_text_prompt
                 result_dict['llm_prompt'] = prompt
                 result_dict['model_name_vlm'] = model_name_vlm
                 result_dict['model_name_llm'] = model_name_llm
@@ -119,7 +120,7 @@ if __name__ == "__main__":
 
     # 创建保存路径
     timestamp = time.strftime('%y%m%d%H%M%S')
-    save_path_template = f"../data/image_test-{timestamp}.json"
+    save_path_template = f"../data/image_test-{timestamp}-{model_name_llm}.json"
     final_save_path = save_path_template
 
     # 将数据平均分配给各个线程

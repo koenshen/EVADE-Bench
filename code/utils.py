@@ -459,7 +459,7 @@ def call_idealab_api(prompt, image_url:str, model_name:str):
     completion = client.chat.completions.create(
         model=model_name,
         messages=messages,
-        max_tokens=20480,
+        max_tokens=8192,
         temperature=0.8,
         stream=True
     )
@@ -471,6 +471,45 @@ def call_idealab_api(prompt, image_url:str, model_name:str):
             result += content
     return result, None
 
+def call_idealab_api_without_stream(prompt, image_url:str, model_name:str):
+    if isinstance(prompt, str):
+        if image_url:
+            messages = [{
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": prompt
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": image_url,
+                            "detail": "high"
+                        }
+                    }
+                ]
+            }]
+        else:
+            messages = [{"role": "user", "content": prompt}]
+    else:
+        messages = prompt
+
+    client = OpenAI(
+        api_key=os.getenv("api_key", ""),
+        base_url=os.getenv("base_url", ""),
+    )
+
+    completion = client.chat.completions.create(
+        model=model_name,
+        messages=messages,
+        max_tokens=8192,
+        temperature=0.8,
+        stream=False
+    )
+    result = completion.choices[0].message.content
+    print(f"result={result}")
+    return result, None
 
 def call_qwen3_api(prompt, model_name="qwen3", enable_thinking=True):
     if isinstance(prompt, str):
@@ -543,15 +582,15 @@ def get_inference_result_and_check_accuracy(data_list:list):
     for index, item in enumerate(data_list):
         try:
             ground_truth_list = eval(item['ground_truth'])
-            if validate_and_extract_three_json(item['generate_results']):
+            if "\\box" in item['generate_results']:
+                box_content = validate_and_extract_box_content(item['generate_results'])
+                box_content_str = uniform_format_of_options(box_content)
+                predict_list = json.loads(box_content_str)
+            elif validate_and_extract_three_json(item['generate_results']):
                 predict_json = validate_and_extract_three_json(item['generate_results'])
                 predict_list_str = json.loads(predict_json)['结论']
                 predict_list_str = uniform_format_of_options(predict_list_str)
                 predict_list = json.loads(predict_list_str)
-            elif "\\box" in item['generate_results']:
-                box_content = validate_and_extract_box_content(item['generate_results'])
-                box_content_str = uniform_format_of_options(box_content)
-                predict_list = json.loads(box_content_str)
             elif item['generate_results'].startswith('[') and item['generate_results'].endswith(']'):
                 predict_list_str = uniform_format_of_options(item['generate_results'])
                 predict_list = json.loads(predict_list_str)
@@ -647,3 +686,21 @@ def messages_builder_example_one_shot_text(one_shot_question:str, one_shot_answe
     dialog_message.append({"role": "assistant", "content": one_shot_answer})
     dialog_message.append({"role": "user", "content": reasoning_question})
     return dialog_message
+
+def is_limit_api(response:str):
+    if "conflict" in response or "限流" in response or "TOO_MANY_REQUESTS" in response or "error" in response:
+        raise Exception(f"current text={response} has '限流' limit word.")
+    return False
+
+def compute_accuracy_by_filename(file_name:str, content_type_list:list):
+    with open(file_name, 'r', encoding="utf-8") as f:
+        result_list = json.load(f)
+
+    datas = []
+    if content_type_list and len(content_type_list) > 0:
+        for item in result_list:
+            if item['content_type'] in content_type_list:
+                datas.append(item)
+    else:
+        datas = result_list
+    get_inference_result_and_check_accuracy(datas)

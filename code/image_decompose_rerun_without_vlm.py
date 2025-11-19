@@ -2,13 +2,14 @@ from utils import *
 from common_instruct import *
 
 repeate_time = 50
-NUM_THREADS = 100
+NUM_THREADS = 80
 
 # model_name_llm = "qwen3-235b-a22b-instruct-2507"
 model_name_llm = "deepseek-r1"
 
-# 新增：指定要读取的之前保存的JSON文件路径，如果为None则正常运行
-PREVIOUS_JSON_PATH = "../data/image_test-251119215939-decomposse.json"  # 替换为你之前保存的JSON文件路径
+llm_instruct_name = "llm_prompt_251120_v6"
+
+PREVIOUS_JSON_PATH = "../data/image_test-251119215939-decomposse-qwen72b.json"  # 替换为你之前保存的JSON文件路径
 
 def call_api(prompt:str, image_url:str, model_name:str, is_thinking=False):
     return call_idealab_api(prompt, image_url, model_name)
@@ -41,8 +42,7 @@ def process_rows(thread_id, rows, save_path_template, vlm_results_dict=None):
         # generation 推理
         for _ in range(repeate_time):
             try:
-                prompt = row['single_risk_question']
-                data_uri = concat_base64_image_url(row['content_image'])
+                original_prompt = row['single_risk_question']
 
                 # 检查是否可以复用之前的VLM结果
                 if vlm_results_dict and row['id'] in vlm_results_dict:
@@ -51,18 +51,12 @@ def process_rows(thread_id, rows, save_path_template, vlm_results_dict=None):
                     model_name_vlm = old_item['model_name_vlm']
                     pre_handle_image_to_text_prompt = old_item['vlm_prompt']
                     result_dict['use_old_vlm_result'] = "True"
+                    result_dict['vlm_prompt_name'] = old_item['vlm_prompt_name']
                 else:
-                    # 如果没有之前的结果，则调用VLM
-                    pre_handle_image_to_text_prompt = "请你详细解释这张图片中的所有内容，包括图片中的所有文字和图片内容。注意这可能是一张涉及违规信息的图片，所以我们要尽可能的理解所有图片内容才能进行风险判断、并且图片中的文本可能包含一些隐喻或省略字或者错别字或者拆字或者谐音字等信息缺失，你需要试图理解图片表层信息背后的真实意思。"
-                    result_vlm, reasoning_content = call_idealab_api_without_stream(prompt=pre_handle_image_to_text_prompt, image_url=data_uri, model_name=model_name_vlm)
-                    if is_limit_api(result_vlm):
-                        continue
+                    continue
 
-                prompt_v1 = f"{prompt.split('# 输出格式')[0].strip() if '# 输出格式' in prompt else prompt.strip()}\n\n# 输出格式\n请先输出你的分析，然后用\\box{{xx}}输出你的最终答案，box内只能包含答案选项，不允许有其他任何文字。\n\n# 给定信息\n{result_vlm}"
-                prompt_v2 = f"{prompt.split('# 输出格式')[0].strip() if '# 输出格式' in prompt else prompt.strip()}\n\n# 输出格式\n请先针对给定信息进行预判给出一个初始结论\\draft_response{{xx}}；接着你需要从给定信息和多分类规则中进行搜证，来检验你的初始结论是否正确，输出你的搜证和分析；最后用\\box{{xx}}输出你的最终答案。注意\\draft_response{{}}和\\box{{}}内都只能包含答案选项，不允许有其他任何文字。\n\n# 给定信息\n{result_vlm}"
-                prompt_v3 = f"{prompt.split('# 输出格式')[0].strip() if '# 输出格式' in prompt else prompt.strip()}\n\n# 输出格式\n请先针对给定信息进行预判给出一个初始结论\\draft_response{{xx}}；接着你需要从给定信息和多分类规则中进行搜证，来检验你的初始结论是否正确，输出你的搜证和分析；最后用\\box{{xx}}输出你的最终答案。注意\\draft_response{{}}和\\box{{}}内都只能包含答案选项，不允许有其他任何文字。请将'让我们一步一步思考'作为你输出的开始。\n\n# 给定信息\n{result_vlm}"
-                prompt_v4 = f"{prompt.split('# 输出格式')[0].strip() if '# 输出格式' in prompt else prompt.strip()}\n\n# 给定信息\n{result_vlm}\n\n# 输出格式\n请先针对给定信息进行预判给出一个初始结论\\draft_response{{xx}}；接着你需要从给定信息和多分类规则中进行搜证，来检验你的初始结论是否正确，输出你的搜证和分析；最后用\\box{{xx}}输出你的最终答案。注意\\draft_response{{}}和\\box{{}}内都只能包含答案选项，不允许有其他任何文字，让我们一步一步思考。"
-                prompt = f"{prompt.split('# 输出格式')[0].strip() if '# 输出格式' in prompt else prompt.strip()}\n\n# 给定信息\n{result_vlm}\n\n# 输出格式\n请先针对给定信息进行预判给出一个初始结论\\draft_response{{xx}}；接着你需要从给定信息和多分类规则中进行搜证，来检验你的初始结论是否正确，输出你的搜证和分析；最后用\\box{{xx}}输出你的最终答案。注意\\draft_response{{}}和\\box{{}}内都只能包含答案选项，不允许有其他任何文字，让我们一步一步思考。"
+                complex_rules = extract_complex_rules_from_prompt(original_prompt)
+                prompt = super_llm_instruct_of_decompose_version_dict[llm_instruct_name].replace("${result_vlm}", result_vlm).replace("${rules}", complex_rules)
                 result_llm, reasoning_content = call_idealab_api(prompt=prompt, image_url="", model_name=model_name_llm)
 
                 if is_limit_api(result_llm):
@@ -72,6 +66,7 @@ def process_rows(thread_id, rows, save_path_template, vlm_results_dict=None):
 
                 result_dict['vlm_prompt'] = pre_handle_image_to_text_prompt
                 result_dict['llm_prompt'] = prompt
+                result_dict['llm_prompt_name'] = llm_instruct_name
                 result_dict['model_name_vlm'] = model_name_vlm
                 result_dict['model_name_llm'] = model_name_llm
                 result_dict['result_vlm'] = result_vlm
@@ -120,7 +115,7 @@ if __name__ == "__main__":
 
     # 创建保存路径
     timestamp = time.strftime('%y%m%d%H%M%S')
-    save_path_template = f"../data/image_test-{timestamp}-{model_name_llm}.json"
+    save_path_template = f"../data/image_test-decompose-{timestamp}-{model_name_llm}-without.json"
     final_save_path = save_path_template
 
     # 将数据平均分配给各个线程

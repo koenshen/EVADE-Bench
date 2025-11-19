@@ -144,10 +144,16 @@ def calculate_accuracy(annotator_dict, annotator_name, ground_truth_dict):
 #                4. 主函数
 # ------------------------------------------------------------
 if __name__ == "__main__":
+    # file_paths = [
+    #     "../data/Evade-增高标注-文本_GBK__20251117100122.jsonl",
+    #     "../data/Evade-疾病标注-文本_GBK__20251117100131.jsonl",
+    # ]
+
     file_paths = [
-        "../data/Evade-增高标注-文本_GBK__20251117100122.jsonl",
-        # "../data/Evade-疾病标注-文本_GBK__20251117100131.jsonl",
+        "../data/Evade-增高标注-图像_GBK__20251117100128.jsonl",
+        "../data/Evade-疾病标注-图像_GBK__20251117100345.jsonl",
     ]
+
     (dict1, name1), (dict2, name2), (dict3, name3), ground_truth_dict = process_jsonl_files_to_dicts(file_paths)
 
     print("=" * 80)

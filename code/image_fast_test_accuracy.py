@@ -82,14 +82,16 @@ if __name__ == "__main__":
     final_save_path = save_path_template
 
     # 将数据平均分配给各个线程
-    rows_per_thread = len(image_test_datas) // NUM_THREADS
+    total_rows = len(image_test_datas)
+    rows_per_thread = total_rows // NUM_THREADS
+    remainder = total_rows % NUM_THREADS  # 计算余数
     threads = []
 
-    # 创建并启动线程
     for i in range(NUM_THREADS):
-        start_idx = i * rows_per_thread
-        end_idx = start_idx + rows_per_thread if i < NUM_THREADS - 1 else len(image_test_datas)
+        start_idx = i * rows_per_thread + min(i, remainder)
+        end_idx = start_idx + rows_per_thread + (1 if i < remainder else 0)
         thread_df = image_test_datas.iloc[start_idx:end_idx]
+        print(f"Thread {i}: 分配 {len(thread_df)} 条数据")
 
         thread = threading.Thread(
             target=process_rows,

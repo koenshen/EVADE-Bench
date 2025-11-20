@@ -8,7 +8,7 @@ import numpy as np
 
 # 读取数据集
 dataset_name = 'koenshen/EVADE-Bench'
-image_test_dataset = datasets.load_dataset(dataset_name, split="image_test")
+image_test_dataset = datasets.load_dataset(dataset_name, split="image")
 
 # 存储统计结果的字典
 stats_by_content_type = defaultdict(Counter)

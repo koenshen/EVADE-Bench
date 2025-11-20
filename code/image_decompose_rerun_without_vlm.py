@@ -6,10 +6,14 @@ NUM_THREADS = 80
 
 # model_name_llm = "qwen3-235b-a22b-instruct-2507"
 model_name_llm = "deepseek-r1"
+# model_name_llm = "deepseek-v3"
+
+# model_name_llm = "DeepSeek-R1-0528-ideaLAB" #idealab
+# model_name_llm = "gpt-41-0414-global"  #idealab
 
 llm_instruct_name = "llm_prompt_251120_v6"
 
-PREVIOUS_JSON_PATH = "../data/image_test-251119215939-decomposse-qwen72b.json"  # 替换为你之前保存的JSON文件路径
+PREVIOUS_JSON_PATH = "../data/image_test-decompose-251120025245-qwen2.5-72b-instruct.json"  # 替换为你之前保存的JSON文件路径
 
 def call_api(prompt:str, image_url:str, model_name:str, is_thinking=False):
     return call_idealab_api(prompt, image_url, model_name)

@@ -7,7 +7,7 @@ NUM_THREADS = 80
 model_name_vlm = "gpt-4o-0806"
 # model_name_vlm = "qwen2.5-vl-72b-instruct"
 model_name_llm = "qwen2.5-72b-instruct"
-vlm_instruct_name = "vlm_prompt_251120_v3"
+vlm_instruct_name = "vlm_prompt_251120_v5"
 llm_instruct_name = "llm_prompt_251120_v6"
 
 def call_api(prompt:str, image_url:str, model_name:str, is_thinking=False):
@@ -32,8 +32,8 @@ def process_rows(thread_id, rows, save_path_template):
                 original_prompt = row['single_risk_question']
                 data_uri = concat_base64_image_url(row['content_image'])
 
-                # pre_handle_image_to_text_prompt = super_vlm_instruct_of_decompose_version_dict[vlm_instruct_name][row['content_type']]
-                pre_handle_image_to_text_prompt = super_vlm_instruct_of_decompose_version_dict[vlm_instruct_name]
+                pre_handle_image_to_text_prompt = super_vlm_instruct_of_decompose_version_dict[vlm_instruct_name][row['content_type']] # 当vlm prompt是需要根据content_type定制时
+                # pre_handle_image_to_text_prompt = super_vlm_instruct_of_decompose_version_dict[vlm_instruct_name] # 当vlm prompt在6类中通用
                 result_vlm, reasoning_content = call_idealab_api_without_stream(prompt=pre_handle_image_to_text_prompt, image_url=data_uri, model_name=model_name_vlm)
                 if is_limit_api(result_vlm):
                     continue

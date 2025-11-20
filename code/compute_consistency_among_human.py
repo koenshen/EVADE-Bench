@@ -227,7 +227,7 @@ if __name__ == "__main__":
     file_paths = [
         # "../data/Evade-增高标注-文本_GBK__20251117100122.jsonl",
         # "../data/Evade-疾病标注-文本_GBK__20251117100131.jsonl",
-        "../data/Evade-增高标注-图像_GBK__20251117100128.jsonl",
+        # "../data/Evade-增高标注-图像_GBK__20251117100128.jsonl",
         "../data/Evade-疾病标注-图像_GBK__20251117100345.jsonl",
     ]
 

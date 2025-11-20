@@ -114,10 +114,10 @@ def build_alpha_matrix_intersection(dict1, dict2, dict3):
 
     return np.stack(matrices, axis=0)
 
+# ------------------------------------------------------------
+#           5. 优化版本的 Krippendorff's Alpha
+# ------------------------------------------------------------
 
-# ------------------------------------------------------------
-#                5. Krippendorff’s Alpha
-# ------------------------------------------------------------
 def krippendorffs_alpha(matrix):
     N, k, d = matrix.shape
 
@@ -142,17 +142,91 @@ def krippendorffs_alpha(matrix):
 
     return 1 - Do / De
 
+def krippendorffs_alpha_multihot_fast(matrix):
+    """
+    matrix: (N, k, d)  multi-hot, 0/1
+    与原 krippendorffs_alpha 结果完全一致，但 O(N) 级别速度
+    """
+    N, k, d = matrix.shape
+    alpha_per_dim = []
+
+    for dim in range(d):
+        x = matrix[:, :, dim]    # shape (N, k)
+
+        # -------------------------------------
+        # Do（观测不一致度）
+        # -------------------------------------
+        # 每个样本内，计算 k*(k-1)/2 个 pair 的不一致
+        diffs = [
+            np.sum(x[:, 0] != x[:, 1]),
+            np.sum(x[:, 0] != x[:, 2]),
+            np.sum(x[:, 1] != x[:, 2]),
+        ]
+        Do = sum(diffs) / (N * 3)
+
+        # -------------------------------------
+        # De（期望不一致度）= 二分类 nominal
+        # -------------------------------------
+        flat = x.reshape(-1)
+        n1 = flat.sum()       # 标 1 的数量
+        n0 = len(flat) - n1   # 标 0 的数量
+        M = len(flat)
+
+        # nominal 二分类 De 公式
+        De = (n1 * n0 * 2) / (M * (M - 1))
+
+        if De == 0:
+            alpha_per_dim.append(1.0)
+        else:
+            alpha_per_dim.append(1 - Do / De)
+
+    # 和原版一样：对所有维度求 mean（等权）
+    return float(np.mean(alpha_per_dim))
+
+def krippendorffs_alpha_multihot_fast_exact(matrix):
+    N, k, d = matrix.shape
+
+    # -------------------------------------
+    # 1. Do 观测不一致度（pairwise）
+    # -------------------------------------
+    # 原始版本 Do 是对每个样本计算 3 个 pair 的汉明距离
+    # 我们直接向量化
+    diffs = (
+        np.sum(matrix[:,0] != matrix[:,1]) +
+        np.sum(matrix[:,0] != matrix[:,2]) +
+        np.sum(matrix[:,1] != matrix[:,2])
+    )
+    Do = diffs / (N * 3)
+
+    # -------------------------------------
+    # 2. De 期望不一致度（复现原始版本）
+    # -------------------------------------
+    flat = matrix.reshape(-1, d)    # (M, d)
+    M = flat.shape[0]
+
+    # 每个维度的 n1 和 n0
+    n1 = flat.sum(axis=0)
+    n0 = M - n1
+
+    # 原始版本的 pairwise 汉明距离总和
+    total_mismatch = np.sum(n1 * n0)
+
+    # 总 pair 数 = M choose 2
+    total_pairs = M * (M - 1) / 2
+
+    De = total_mismatch / total_pairs
+
+    return 1 - Do / De
+
+
 
 # ------------------------------------------------------------
 #                6. 主程序
 # ------------------------------------------------------------
 if __name__ == "__main__":
-    # file_paths = [
-    #     "../data/Evade-增高标注-文本_GBK__20251117100122.jsonl",
-    #     "../data/Evade-疾病标注-文本_GBK__20251117100131.jsonl",
-    # ]
-
     file_paths = [
+        # "../data/Evade-增高标注-文本_GBK__20251117100122.jsonl",
+        # "../data/Evade-疾病标注-文本_GBK__20251117100131.jsonl",
         "../data/Evade-增高标注-图像_GBK__20251117100128.jsonl",
         "../data/Evade-疾病标注-图像_GBK__20251117100345.jsonl",
     ]
@@ -165,7 +239,7 @@ if __name__ == "__main__":
 
     alpha_input = build_alpha_matrix_intersection(dict1, dict2, dict3)
 
-    alpha = krippendorffs_alpha(alpha_input)
+    alpha = krippendorffs_alpha_multihot_fast_exact(alpha_input)
     print("Krippendorff’s Alpha:", alpha)
 
     # Debug: 打印 Label 分布

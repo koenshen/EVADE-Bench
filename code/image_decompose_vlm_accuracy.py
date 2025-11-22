@@ -2,10 +2,13 @@ from utils import *
 from common_instruct import *
 
 repeate_time = 50
-NUM_THREADS = 80
+NUM_THREADS = 50
 
-model_name_vlm = "gpt-4o-0806"
-# model_name_vlm = "qwen2.5-vl-72b-instruct"
+# model_name_vlm = "gpt-4o-0806"
+# model_name_vlm = "qwen2.5-vl-7b-instruct" # bailian
+# model_name_vlm = "claude37_sonnet"
+model_name_vlm = "gemini-2.5-pro"
+
 model_name_llm = "qwen2.5-72b-instruct"
 vlm_instruct_name = "vlm_prompt_251120_v5"
 llm_instruct_name = "llm_prompt_251120_v6"

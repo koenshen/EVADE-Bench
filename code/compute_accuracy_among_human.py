@@ -146,10 +146,21 @@ def calculate_accuracy(annotator_dict, annotator_name, ground_truth_dict):
 if __name__ == "__main__":
     file_paths = [
         # "../data/Evade-增高标注-文本_GBK__20251117100122.jsonl",
-        # "../data/Evade-疾病标注-文本_GBK__20251117100131.jsonl",
-        "../data/Evade-增高标注-图像_GBK__20251117100128.jsonl",
-        "../data/Evade-疾病标注-图像_GBK__20251117100345.jsonl",
+        "../data/Evade-疾病标注-文本_GBK__20251117100131.jsonl",
+        # "../data/Evade-丰胸标注-文本_GBK__20251121101254.jsonl",
+        # "../data/Evade-减肥标注-文本_GBK__20251121101313.jsonl",
+        # "../data/Evade-壮阳标注-文本_GBK__20251121101335.jsonl",
+        # "../data/Evade-缩阴标注-文本_GBK__20251121101325.jsonl",
     ]
+
+    # file_paths = [
+    #     "../data/Evade-增高标注-图像_GBK__20251117100128.jsonl",
+    #     "../data/Evade-疾病标注-图像_GBK__20251117100345.jsonl",
+    #     "../data/Evade-丰胸标注-图像_GBK__20251121101250.jsonl",
+    #     "../data/Evade-减肥标注-图像_GBK__20251121101259.jsonl",
+    #     "../data/Evade-壮阳标注-图像_GBK__20251121101330.jsonl",
+    #     "../data/Evade-缩阴标注-图像_GBK__20251121101317.jsonl",
+    # ]
 
     (dict1, name1), (dict2, name2), (dict3, name3), ground_truth_dict = process_jsonl_files_to_dicts(file_paths)
 
@@ -202,3 +213,4 @@ if __name__ == "__main__":
     print(f"6. {name3} 部分一致率: {result3['partial_accuracy']:.4f}")
     print(f"7. 3人完全一致率平均值: {avg_full_accuracy:.4f}")
     print(f"8. 3人部分一致率平均值: {avg_partial_accuracy:.4f}")
+    print(f"{avg_partial_accuracy * 100:.2f} / {avg_full_accuracy * 100:.2f}")

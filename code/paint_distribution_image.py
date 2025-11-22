@@ -8,7 +8,7 @@ import numpy as np
 
 # 读取数据集
 dataset_name = 'koenshen/EVADE-Bench'
-image_test_dataset = datasets.load_dataset(dataset_name, split="image")
+image_test_dataset = datasets.load_dataset(dataset_name, split="text")
 
 # 存储统计结果的字典
 stats_by_content_type = defaultdict(Counter)
@@ -36,7 +36,7 @@ print("=" * 80)
 print("统计结果:")
 print("=" * 80)
 for content_type, counter in stats_by_content_type.items():
-    print(f"\nContent Type: {content_type}")
+    print(f"\n{content_type}")
     # 按字母顺序排序输出
     for option in sorted(counter.keys()):
         print(f"  {option}: {counter[option]}")
@@ -80,76 +80,92 @@ for idx, content_type in enumerate(content_types):
                 f'{int(height)}',
                 ha='center', va='bottom', fontsize=8)
 
-    ax.grid(axis='y', alpha=0.3)
+    # ax.grid(axis='y', alpha=0.3)
+
+    # 去除网格线
+    ax.grid(False)
+
+    # 只保留左边框和下边框，去除上边框和右边框
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(True)
+    ax.spines['bottom'].set_visible(True)
+
+    # 设置y轴从0开始，确保即使所有值都是0也能看到
+    ax.set_ylim(bottom=0)
 
 # 隐藏多余的子图
 for idx in range(n_content_types, len(axes)):
     axes[idx].set_visible(False)
 
 plt.tight_layout()
-plt.savefig('single_risk_options_by_content_type.png', dpi=300, bbox_inches='tight')
+plt.savefig('single_risk_options_by_content_type.png', dpi=100, bbox_inches='tight')
 print(f"\n图表已保存为: single_risk_options_by_content_type.png")
 plt.show()
-
-# 方案2: 创建一个汇总的热力图
-print("\n正在生成热力图...")
-
-# 准备数据用于热力图
-all_options = set()
-for counter in stats_by_content_type.values():
-    all_options.update(counter.keys())
-
-# 按字母顺序排序所有选项
-all_options = sorted(list(all_options))
-content_types_sorted = sorted(list(stats_by_content_type.keys()))
-
-# 创建矩阵
-matrix = []
-for content_type in content_types_sorted:
-    row = [stats_by_content_type[content_type][option] for option in all_options]
-    matrix.append(row)
-
-# 绘制热力图
-plt.figure(figsize=(max(12, len(all_options) * 0.8), max(8, len(content_types_sorted) * 0.6)))
-sns.heatmap(matrix,
-            xticklabels=all_options,
-            yticklabels=content_types_sorted,
-            annot=True,
-            fmt='d',
-            cmap='YlOrRd',
-            cbar_kws={'label': 'Sample Count'})
-
-plt.xlabel('Risk Options', fontsize=12)
-plt.ylabel('Content Type', fontsize=12)
-plt.title('Distribution of Single Risk Options by Content Type', fontsize=14, fontweight='bold')
-plt.xticks(rotation=45, ha='right')
-plt.yticks(rotation=0)
-plt.tight_layout()
-plt.savefig('single_risk_options_heatmap.png', dpi=300, bbox_inches='tight')
-print(f"热力图已保存为: single_risk_options_heatmap.png")
-plt.show()
-
-# 方案3: 创建DataFrame并保存为CSV
-print("\n正在保存统计数据到CSV...")
-df_data = []
-for content_type in sorted(stats_by_content_type.keys()):
-    counter = stats_by_content_type[content_type]
-    for option in sorted(counter.keys()):
-        df_data.append({
-            'content_type': content_type,
-            'risk_option': option,
-            'count': counter[option]
-        })
-
-df = pd.DataFrame(df_data)
-df.to_csv('single_risk_options_statistics.csv', index=False)
-print(f"统计数据已保存为: single_risk_options_statistics.csv")
 
 # 显示汇总信息
 print("\n" + "=" * 80)
 print("汇总信息:")
 print("=" * 80)
 print(f"总的 Content Types 数量: {len(stats_by_content_type)}")
-print(f"总的 Risk Options 数量: {len(all_options)}")
-print(f"所有 Risk Options (按字母顺序): {', '.join(all_options)}")
 print(f"总样本数 (计入所有选项): {sum(sum(counter.values()) for counter in stats_by_content_type.values())}")
+
+
+# 新增函数：生成并打印markdown表格
+def print_markdown_table(stats_by_content_type):
+    """
+    生成并打印markdown格式的统计表格
+
+    参数:
+        stats_by_content_type: 按content_type统计的字典
+    """
+    # 获取所有出现过的risk options（A-Z的字母）
+    all_options = set()
+    for counter in stats_by_content_type.values():
+        all_options.update(counter.keys())
+
+    # 按字母顺序排序
+    sorted_options = sorted(list(all_options))
+
+    # 获取所有content_type并排序
+    sorted_content_types = sorted(list(stats_by_content_type.keys()))
+
+    # 构建表头
+    header = "| Type | " + " | ".join(sorted_options) + " |"
+    separator = "|------|" + "|".join(["------" for _ in sorted_options]) + "|"
+
+    # 打印markdown表格
+    print("\n" + "=" * 80)
+    print("Markdown 统计表格:")
+    print("=" * 80)
+    print(header)
+    print(separator)
+
+    # 为每个content_type打印一行
+    for content_type in sorted_content_types:
+        counter = stats_by_content_type[content_type]
+        row = f"| {content_type} |"
+
+        for option in sorted_options:
+            count = counter.get(option, 0)  # 如果该选项不存在，返回0
+            row += f" {count} |"
+
+        print(row)
+
+    print("\n")
+
+    # 可选：同时返回pandas DataFrame，方便进一步处理
+    data = []
+    for content_type in sorted_content_types:
+        counter = stats_by_content_type[content_type]
+        row_data = {'Type': content_type}
+        for option in sorted_options:
+            row_data[option] = counter.get(option, 0)
+        data.append(row_data)
+
+    df = pd.DataFrame(data)
+    return df
+
+
+# 调用函数生成markdown表格
+df_result = print_markdown_table(stats_by_content_type)

@@ -224,11 +224,22 @@ def krippendorffs_alpha_multihot_fast_exact(matrix):
 #                6. 主程序
 # ------------------------------------------------------------
 if __name__ == "__main__":
-    file_paths = [
+    # file_paths = [
         # "../data/Evade-增高标注-文本_GBK__20251117100122.jsonl",
         # "../data/Evade-疾病标注-文本_GBK__20251117100131.jsonl",
+        # "../data/Evade-丰胸标注-文本_GBK__20251121101254.jsonl",
+        # "../data/Evade-减肥标注-文本_GBK__20251121101313.jsonl",
+        # "../data/Evade-壮阳标注-文本_GBK__20251121101335.jsonl",
+        # "../data/Evade-缩阴标注-文本_GBK__20251121101325.jsonl",
+    # ]
+
+    file_paths = [
         # "../data/Evade-增高标注-图像_GBK__20251117100128.jsonl",
         "../data/Evade-疾病标注-图像_GBK__20251117100345.jsonl",
+        # "../data/Evade-丰胸标注-图像_GBK__20251121101250.jsonl",
+        # "../data/Evade-减肥标注-图像_GBK__20251121101259.jsonl",
+        # "../data/Evade-壮阳标注-图像_GBK__20251121101330.jsonl",
+        # "../data/Evade-缩阴标注-图像_GBK__20251121101317.jsonl",
     ]
 
     (dict1, name1), (dict2, name2), (dict3, name3) = process_jsonl_files_to_dicts_simple(file_paths)
@@ -241,10 +252,10 @@ if __name__ == "__main__":
 
     alpha = krippendorffs_alpha_multihot_fast_exact(alpha_input)
     print("Krippendorff’s Alpha:", alpha)
-
+    print(f"{alpha:.4f}")
     # Debug: 打印 Label 分布
     flat = alpha_input.reshape(-1, 26)
     freq = flat.sum(axis=0)
-    print("\nLabel frequencies:")
-    for i, c in enumerate(freq):
-        print(f"{chr(65+i)}: {c}")
+    # print("\nLabel frequencies:")
+    # for i, c in enumerate(freq):
+    #     print(f"{chr(65+i)}: {c}")

@@ -1,9 +1,11 @@
 from utils import *
 
 repeate_time = 50
-NUM_THREADS = 50
+NUM_THREADS = 100
 
-model_name_use = "gpt-4o-0806"
+# model_name_use = "gpt-4o-0806"
+model_name_use = "claude37_sonnet"
+# model_name_use = "gemini-2.5-pro"
 
 def call_api(prompt:str, image_url:str, model_name:str, is_thinking=False):
     return call_idealab_api(prompt, image_url, model_name)
@@ -20,7 +22,7 @@ def process_rows(thread_id, rows, save_path_template):
         result_dict = {}
         result_dict['id'] = row['id']
         result_dict['ground_truth'] = row['single_risk_options']
-
+        result_dict['content_type'] = row['content_type']
         # generation 推理
         for _ in range(repeate_time):
             try:

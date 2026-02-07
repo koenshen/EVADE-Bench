@@ -10,8 +10,8 @@ NUM_THREADS = 50
 model_name_vlm = "gemini-2.5-pro"
 
 model_name_llm = "qwen2.5-72b-instruct"
-vlm_instruct_name = "vlm_prompt_251120_v5"
-llm_instruct_name = "llm_prompt_251120_v6"
+vlm_instruct_name = "vlm_prompt"
+llm_instruct_name = "llm_prompt"
 
 def call_api(prompt:str, image_url:str, model_name:str, is_thinking=False):
     return call_idealab_api(prompt, image_url, model_name)

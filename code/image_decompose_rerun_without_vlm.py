@@ -11,7 +11,7 @@ model_name_llm = "deepseek-r1"
 # model_name_llm = "DeepSeek-R1-0528-ideaLAB" #idealab
 # model_name_llm = "gpt-41-0414-global"  #idealab
 
-llm_instruct_name = "llm_prompt_251120_v6"
+llm_instruct_name = "llm_prompt"
 
 PREVIOUS_JSON_PATH = "../data/image_test-decompose-251121003126-qwen2.5-72b-instruct.json"  # 替换为你之前保存的JSON文件路径
 
